@@ -1,0 +1,125 @@
+name: Flujo de trabajo
+
+# Controla las acciones que se ejecutarán
+on:
+  push:
+    branches: 
+      - "feature/*"
+      - develop
+      - "release/*"
+
+# Trabajos a realizar de manera secuencial
+jobs:
+  pull-feature:
+    name: pull develop -> ${{ github.ref_name }}
+    if: ${{ contains(github.event.head_commit.message, 'PRUEBAS EJECUTADAS') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mezcla rama develop -> ${{ github.ref_name }}
+        uses: tukasz/direct-merge-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: develop
+          target_branch: ${{ github.ref_name }}
+
+  pruebas-rama-feature:
+    name: Pruebas feature
+    needs: pull-feature
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout de repositorio
+        uses: actions/checkout@v2
+      - name: Configuración de entorno de python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.13.2'
+      - name: Instalación de librerías y dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Ejecutar pruebas
+        id: ejecutar-pruebas
+        run: python -m unittest discover -s tests
+
+  merge-develop:
+    name: Merge ${{ github.ref_name }} -> develop
+    needs: pruebas-rama-feature
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mezcla rama ${{ github.ref_name }} -> develop
+        uses: tukasz/direct-merge-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: ${{ github.ref_name }}
+          target_branch: develop
+
+  branch-release:
+    name: Branch develop -> release
+    needs: merge-develop
+    if: ${{ contains(github.event.head_commit.message, 'RELEASE') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout de repositorio
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Crear rama release
+        run: |
+          git checkout develop
+          git pull origin develop
+          RELEASE_BRANCH="release/$(date +'%Y%m%d')"
+          git checkout -b $RELEASE_BRANCH
+          git push -f -u origin $RELEASE_BRANCH
+
+  pruebas-rama-release:
+    name: Pruebas release
+    needs: branch-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout de repositorio
+        uses: actions/checkout@v2
+      - name: Configuración de entorno de python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.13.2'
+      - name: Instalación de librerías y dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Ejecutar pruebas
+        id: ejecutar-pruebas
+        run: python -m unittest discover -s tests
+      - name: Cálculo de cubrimiento
+        id: cubrimiento
+        run: |
+          coverage run -m unittest tests/test_persona.py
+          coverage report -m
+  
+  merge-main:
+    name: Merge release -> main
+    needs: pruebas-rama-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout de repositorio
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Rama release
+        run: |
+          RELEASE_BRANCH="release/$(date +'%Y%m%d')"
+          git checkout $RELEASE_BRANCH
+          git pull origin $RELEASE_BRANCH
+      - name: Mezcla release -> main
+        uses: tukasz/direct-merge-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: release/$(date +'%Y%m%d')
+          target_branch: main
+
+  
