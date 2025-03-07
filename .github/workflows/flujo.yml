@@ -108,7 +108,7 @@ jobs:
   
   merge-main:
     name: Merge release -> main
-    needs: pruebas-rama-release
+    needs: [branch-release, pruebas-rama-release]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout de repositorio
