@@ -66,6 +66,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Crear rama release
+        id: crear-rama-release
         run: |
           git checkout develop
           git pull origin develop
