@@ -85,9 +85,9 @@ jobs:
           fetch-depth: 0
       - name: rama release
         run: |
-          RELEASE_BRANCH="${{ needs.branch-release.outputs.release_branch }}"
-          git checkout $RELEASE_BRANCH
-          git pull origin $RELEASE_BRANCH
+          git fetch
+          git checkout ${{ needs.branch-release.outputs.release_branch }}
+          git pull origin ${{ needs.branch-release.outputs.release_branch }}
       - name: Configuración de entorno de python
         uses: actions/setup-python@v2
         with:
@@ -116,9 +116,9 @@ jobs:
           fetch-depth: 0
       - name: Rama release
         run: |
-          RELEASE_BRANCH="${{ needs.branch-release.outputs.release_branch }}"
-          git checkout $RELEASE_BRANCH
-          git pull origin $RELEASE_BRANCH
+          git fetch
+          git checkout ${{ needs.branch-release.outputs.release_branch }}
+          git pull origin ${{ needs.branch-release.outputs.release_branch }}
       - name: Mezcla release -> main
         uses: tukasz/direct-merge-action@master
         with:
