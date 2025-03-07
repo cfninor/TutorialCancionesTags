@@ -58,6 +58,8 @@ jobs:
     needs: merge-develop
     if: ${{ contains(github.event.head_commit.message, 'RELEASE') }}
     runs-on: ubuntu-latest
+    outputs:
+      release_branch: ${{ steps.crear-rama-release.outputs.release_branch }}
     steps:
       - name: Checkout de repositorio
         uses: actions/checkout@v2
@@ -70,6 +72,7 @@ jobs:
           RELEASE_BRANCH="release/$(date +'%Y%m%d_%H%M%S')"
           git checkout -b $RELEASE_BRANCH
           git push -f -u origin $RELEASE_BRANCH
+          echo "release_branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
 
   pruebas-rama-release:
     name: Pruebas release
@@ -78,6 +81,13 @@ jobs:
     steps:
       - name: Checkout de repositorio
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: rama release
+        run: |
+          RELEASE_BRANCH="${{ needs.branch-release.outputs.release_branch }}"
+          git checkout $RELEASE_BRANCH
+          git pull origin $RELEASE_BRANCH
       - name: Configuración de entorno de python
         uses: actions/setup-python@v2
         with:
@@ -106,12 +116,12 @@ jobs:
           fetch-depth: 0
       - name: Rama release
         run: |
-          RELEASE_BRANCH="release/$(date +'%Y%m%d_%H%M%S')"
+          RELEASE_BRANCH="${{ needs.branch-release.outputs.release_branch }}"
           git checkout $RELEASE_BRANCH
           git pull origin $RELEASE_BRANCH
       - name: Mezcla release -> main
         uses: tukasz/direct-merge-action@master
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          source-branch: release/$(date +'%Y%m%d_%H%M%S')
+          source-branch: ${{ needs.branch-release.outputs.release_branch }}
           target-branch: main
