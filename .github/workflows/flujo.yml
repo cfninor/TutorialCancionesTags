@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Mezcla rama develop -> ${{ github.ref_name }}
         uses: tukasz/direct-merge-action@master
-        env:
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           source_branch: develop
           target_branch: ${{ github.ref_name }}
@@ -51,7 +51,7 @@ jobs:
     steps:
       - name: Mezcla rama ${{ github.ref_name }} -> develop
         uses: tukasz/direct-merge-action@master
-        env:
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           source_branch: ${{ github.ref_name }}
           target_branch: develop
@@ -117,7 +117,7 @@ jobs:
           git pull origin $RELEASE_BRANCH
       - name: Mezcla release -> main
         uses: tukasz/direct-merge-action@master
-        env:
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           source_branch: release/$(date +'%Y%m%d')
           target_branch: main
