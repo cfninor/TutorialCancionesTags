@@ -19,8 +19,8 @@ jobs:
         uses: tukasz/direct-merge-action@master
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          source_branch: develop
-          target_branch: ${{ github.ref_name }}
+          source-branch: develop
+          target-branch: ${{ github.ref_name }}
 
   pruebas-rama-feature:
     name: Pruebas feature
@@ -53,8 +53,8 @@ jobs:
         uses: tukasz/direct-merge-action@master
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          source_branch: ${{ github.ref_name }}
-          target_branch: develop
+          source-branch: ${{ github.ref_name }}
+          target-branch: develop
 
   branch-release:
     name: Branch develop -> release
@@ -119,7 +119,5 @@ jobs:
         uses: tukasz/direct-merge-action@master
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          source_branch: release/$(date +'%Y%m%d')
-          target_branch: main
-
-  
+          source-branch: release/$(date +'%Y%m%d')
+          target-branch: main
