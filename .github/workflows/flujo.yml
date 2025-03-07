@@ -25,10 +25,7 @@ jobs:
   pruebas-rama-feature:
     name: Pruebas feature
     needs: pull-feature
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout de repositorio
         uses: actions/checkout@v2
@@ -77,10 +74,7 @@ jobs:
   pruebas-rama-release:
     name: Pruebas release
     needs: branch-release
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout de repositorio
         uses: actions/checkout@v2
